@@ -8,6 +8,7 @@
 **                                                 Karel Masařík, říjen 2013
 **                                                 Radek Hranický 2014-2018
 **
+**                                      Vypracoval: David Oravec (xorave05)
 ** S využitím dynamického přidělování paměti, implementujte NEREKURZIVNĚ
 ** následující operace nad binárním vyhledávacím stromem (předpona BT znamená
 ** Binary Tree a je u identifikátorů uvedena kvůli možné kolizi s ostatními
@@ -60,7 +61,7 @@ void BTWorkOut (tBTNodePtr Ptr)		{
 
 	if (Ptr==NULL)
     printf("Chyba: Funkce BTWorkOut byla volána s NULL argumentem!\n");
-  else
+	else
     printf("Výpis hodnoty daného uzlu> %d\n",Ptr->Cont);
 }
 
@@ -179,8 +180,7 @@ void BTInit (tBTNodePtr *RootPtr)	{
 ** proto je třeba při práci s RootPtr použít dereferenční operátor *.
 **/
 	
-
-	 solved = FALSE;		  /* V případě řešení smažte tento řádek! */
+    *RootPtr = NULL;
 }
 
 void BTInsert (tBTNodePtr *RootPtr, int Content) {
@@ -194,9 +194,56 @@ void BTInsert (tBTNodePtr *RootPtr, int Content) {
 ** vzniká vždy jako list stromu. Funkci implementujte nerekurzivně.
 **/
 
-	
+    if (*RootPtr == NULL){
+        *RootPtr = malloc(sizeof(struct tBTNode));
 
-	 solved = FALSE;		  /* V případě řešení smažte tento řádek! */
+        if (!(*RootPtr)){   //alokacia sa nepodarila
+            return;
+        }
+
+        (*RootPtr)->RPtr = NULL;
+        (*RootPtr)->LPtr = NULL;
+        (*RootPtr)->Cont = Content;
+    } else {
+        tBTNodePtr temPtr = (*RootPtr);
+        tBTNodePtr new = NULL;
+
+        while (!new){
+            if (Content > temPtr->Cont){    //content je vacsi, treba ist doprava
+                if (temPtr->RPtr != NULL) { //ak sa da ist do praveho podstromu
+                    temPtr = temPtr->RPtr;
+                } else { //pravy podstrom neexistuje, pridavame uzol
+                    new = malloc(sizeof(struct tBTNode));
+
+                    if (!new) { //alokacia sa nepodarila
+                        return;
+                    }
+
+                    new->RPtr = NULL;
+                    new->LPtr = NULL;
+                    new->Cont = Content;
+
+                    temPtr->RPtr = new;
+                }
+            } else if (Content < temPtr->Cont) { //content je vacsi, treba ist dolava
+                if (temPtr->LPtr != NULL) { //ak sa da ist do laveho podstromu
+                    temPtr = temPtr->LPtr;
+                } else { //lavy podstrom neexistuje, pridavame uzol
+                    new = malloc(sizeof(struct tBTNode));
+
+                    if (!new) { //alokacia sa nepodarila
+                        return;
+                    }
+
+                    new->RPtr = NULL;
+                    new->LPtr = NULL;
+                    new->Cont = Content;
+
+                    temPtr->LPtr = new;
+                }
+            } else return;
+        }
+    }
 }
 
 /*                                  PREORDER                                  */
@@ -209,9 +256,11 @@ void Leftmost_Preorder (tBTNodePtr ptr, tStackP *Stack)	{
 ** a ukazatele na ně is uložíme do zásobníku.
 **/
 
-	
-
-	 solved = FALSE;		  /* V případě řešení smažte tento řádek! */
+    while (ptr != NULL){
+        SPushP(Stack,ptr);  //ukladam uzol na stack
+        BTWorkOut(ptr);     //spracovanie uzlu
+        ptr = ptr->LPtr;    //posun ukazatela na dalsi uzol
+    }
 }
 
 void BTPreorder (tBTNodePtr RootPtr)	{
@@ -221,9 +270,19 @@ void BTPreorder (tBTNodePtr RootPtr)	{
 ** realizujte jako volání funkce BTWorkOut().
 **/
 
-	
+    if (RootPtr == NULL) return;
+    else {
+        tStackP Stack;
+        SInitP(&Stack);      //inicializacia stacku
+        //ukladam na zasobnik postupne prvky lavej vetvy
+        Leftmost_Preorder(RootPtr, &Stack);
 
-	 solved = FALSE;		  /* V případě řešení smažte tento řádek! */
+        while (!SEmptyP(&Stack)){    //pokial nie je prazdny zasobnik
+            //vytahujem a spracovavam pravy podstrom lavej vetvy
+            RootPtr = STopPopP(&Stack);
+            Leftmost_Preorder(RootPtr->RPtr,&Stack);
+        }
+    }
 }
 
 
@@ -237,10 +296,10 @@ void Leftmost_Inorder(tBTNodePtr ptr, tStackP *Stack)		{
 ** zásobníku.
 **/
 
-	
-
-	 solved = FALSE;		  /* V případě řešení smažte tento řádek! */
-
+    while (ptr != NULL){
+        SPushP(Stack,ptr);  //ukladam uzol na zasobnik
+        ptr = ptr->LPtr;    //posuvam sa dolava na lavy podstrom
+    }
 }
 
 void BTInorder (tBTNodePtr RootPtr)	{
@@ -250,9 +309,19 @@ void BTInorder (tBTNodePtr RootPtr)	{
 ** realizujte jako volání funkce BTWorkOut().
 **/
 
-	
+    if (RootPtr == NULL) return;
+    else {
+        tStackP Stack;
+        SInitP(&Stack);     //inicializacia stacku
 
-	 solved = FALSE;		  /* V případě řešení smažte tento řádek! */
+        //postupne ukladanie uzlov na zasobnik
+        Leftmost_Inorder(RootPtr,&Stack);
+        while (!SEmptyP(&Stack)){
+            RootPtr = STopPopP(&Stack); //vytiahnutie uzlu zo zasobnika
+            BTWorkOut(RootPtr);         //spracovanie aktualneho uzlu
+            Leftmost_Inorder(RootPtr->RPtr, &Stack); //spracovanie praveho podstromu
+        }
+    }
 }
 
 /*                                 POSTORDER                                  */
@@ -266,9 +335,11 @@ void Leftmost_Postorder (tBTNodePtr ptr, tStackP *StackP, tStackB *StackB) {
 ** navštíven poprvé a že se tedy ještě nemá zpracovávat.
 **/
 
-	
-
-	 solved = FALSE;		  /* V případě řešení smažte tento řádek! */
+    while (ptr != NULL){
+        SPushP(StackP,ptr);     //ulozim uzol na zasobnik
+        SPushB(StackB,true);    //ulozenie true na zasobnik
+        ptr = ptr->LPtr;        //posunutie do laveho podstromu
+    }
 }
 
 void BTPostorder (tBTNodePtr RootPtr)	{
@@ -278,9 +349,25 @@ void BTPostorder (tBTNodePtr RootPtr)	{
 ** Zpracování jednoho uzlu stromu realizujte jako volání funkce BTWorkOut().
 **/
 
-	
+    tStackP stackP;
+    tStackB stackB;
 
-	 solved = FALSE;		  /* V případě řešení smažte tento řádek! */
+    SInitP(&stackP);    //inicializacia zasobniku P
+    SInitB(&stackB);    //inicializacia zasobniku B
+
+    Leftmost_Postorder(RootPtr, &stackP, &stackB);
+    while (!SEmptyP(&stackP)){  //pokial nie je prazdny zasobnik
+        RootPtr = STopPopP(&stackP);    //ziskam uzol zo zasobniku
+
+        if (STopPopB(&stackB)){ //uzol bol navstiveny
+            SPushB(&stackB, false); //do zasobniku ukladam false
+            SPushP(&stackP, RootPtr);   //vraciam uzol spat na zasobnik
+            Leftmost_Postorder(RootPtr->RPtr, &stackP, &stackB);
+        } else {
+            //uzol bol navstiveny druhy krat a mozme ho spracovat
+            BTWorkOut(RootPtr);
+        }
+    }
 }
 
 
@@ -291,9 +378,29 @@ void BTDisposeTree (tBTNodePtr *RootPtr)	{
 ** Funkci implementujte nerekurzivně s využitím zásobníku ukazatelů.
 **/
 
-	
-
-	 solved = FALSE;		  /* V případě řešení smažte tento řádek! */
+    if ((*RootPtr) == NULL) return;
+    else {
+        tStackP Stack;
+        SInitP(&Stack);
+        tBTNodePtr temp;    //pomocna premenna na ulozenie ptr ruseneho uzla
+        do {
+            //pokial je ptr na root NULL, novy root bude zo zasobniku
+            if(!(*RootPtr)) {
+                if(!SEmptyP(&Stack)) {
+                    (*RootPtr) = STopPopP(&Stack);
+                }
+            } else {
+                //ak ma root pravy podstrom, ukladam na zasobnik
+                if((*RootPtr)->RPtr) {
+                    SPushP(&Stack, (*RootPtr)->RPtr);
+                }
+                //mazem root a novy root je lavy podstrom
+                temp = *RootPtr;
+                *RootPtr = (*RootPtr)->LPtr;
+                free(temp);
+            }
+        } while(((*RootPtr)) || (!SEmptyP(&Stack)));
+    }
 }
 
 /* konec c402.c */
