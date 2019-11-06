@@ -55,10 +55,7 @@ void BSTInit (tBSTNodePtr *RootPtr) {
 ** Ten bude použit i ve funkcích BSTDelete, BSTInsert a BSTDispose.
 **/
 
-	
-
-	 solved = FALSE;		  /* V případě řešení smažte tento řádek! */
-
+    *RootPtr = NULL;    // koren stormu nastavim na NULL
 }
 
 int BSTSearch (tBSTNodePtr RootPtr, char K, int *Content)	{
@@ -76,10 +73,18 @@ int BSTSearch (tBSTNodePtr RootPtr, char K, int *Content)	{
 ** pomocnou funkci.
 **/
 
-	
-
-	 solved = FALSE;		  /* V případě řešení smažte tento řádek! */
-
+    if (!RootPtr) return FALSE; //ak je koren stromu NULL vraciam FALSE
+    // uzol sa zhoduje s klucom K
+    if (RootPtr->Key == K) {
+        // obsah sa uklada do premennej content, vraciam TRUE
+        *Content = RootPtr->BSTNodeCont;
+        return TRUE;
+    } else if (RootPtr->Key > K){ //kluc je mensi ako kluc korena stromu
+        //funkcia sa vola rekurzivne pre lavy podstrom
+        return BSTSearch(RootPtr->LPtr,K,Content);
+    }
+    // hladany kluc je vacsi ako kluc korena, volam rekurzivne pravy podstrom
+    return BSTSearch(RootPtr->RPtr,K,Content);
 }
 
 
@@ -100,10 +105,30 @@ void BSTInsert (tBSTNodePtr* RootPtr, char K, int Content)	{
 ** příklad, na kterém si chceme ukázat eleganci rekurzivního zápisu.
 **/
 
-	
+    if (!(*RootPtr)){   //ak je strom prazdny
+        //korenom stromu sa stava nova polozka
+        (*RootPtr) = malloc(sizeof(struct tBSTNode));
 
-	 solved = FALSE;		  /* V případě řešení smažte tento řádek! */
+        if (!(*RootPtr)) return;    // malloc zlyhal
 
+        (*RootPtr)->Key = K;
+        (*RootPtr)->BSTNodeCont = Content;
+        (*RootPtr)->LPtr = NULL;
+        (*RootPtr)->RPtr = NULL;
+    }
+    if ((*RootPtr)->Key > K){   //kluc je mensi ako kluc korena
+        //rekurzivne  volanie pre lavy podstrom
+        BSTInsert(&(*RootPtr)->LPtr, K, Content);
+        return;
+    }
+    if ((*RootPtr)->Key < K){   //kluc je vacsi ako kluc korena
+        //rekurzivne volanie pre pravy podstrom
+        BSTInsert(&(*RootPtr)->RPtr, K, Content);
+        return;
+    }
+    //uzol s danym klucom uz existuje, nahradim jeho hodnotu
+    (*RootPtr)->BSTNodeCont = Content;
+    return;
 }
 
 void ReplaceByRightmost (tBSTNodePtr PtrReplaced, tBSTNodePtr *RootPtr) {
@@ -118,10 +143,18 @@ void ReplaceByRightmost (tBSTNodePtr PtrReplaced, tBSTNodePtr *RootPtr) {
 ** Tato pomocná funkce bude použita dále. Než ji začnete implementovat,
 ** přečtěte si komentář k funkci BSTDelete().
 **/
-
-	
-
-	 solved = FALSE;		  /* V případě řešení smažte tento řádek! */
+    if (*RootPtr == NULL) return;
+    if ((*RootPtr)->RPtr != NULL){  //pokial nie som v najpravejsom uzle
+        //pokracujem a volam rekurzivne funkciu ReplaceByRightmost
+        ReplaceByRightmost(PtrReplaced, &(*RootPtr)->RPtr);
+    } else {    //ak je najdeny najpravejsi uzol
+        //presuvam do aktualneho uzlu ten najpravejsi
+        PtrReplaced->Key = (*RootPtr)->Key;
+        PtrReplaced->BSTNodeCont = (*RootPtr)->BSTNodeCont;
+        tBSTNodePtr node = *RootPtr;
+        *RootPtr = (*RootPtr)->LPtr;
+        free(node);
+    }
 
 }
 
@@ -137,10 +170,23 @@ void BSTDelete (tBSTNodePtr *RootPtr, char K) 		{
 ** Tuto funkci implementujte rekurzivně s využitím dříve deklarované
 ** pomocné funkce ReplaceByRightmost.
 **/
-
-	
-
-	 solved = FALSE;		  /* V případě řešení smažte tento řádek! */
+    if (*RootPtr == NULL) return;
+    if ((*RootPtr)->Key < K){   //K je vacsi ako key, idem do praveho podstromu
+        BSTDelete(&(*RootPtr)->RPtr, K);
+    } else if ((*RootPtr)->Key > K) {   //K mensi ako key, lavy podstrom
+        BSTDelete(&(*RootPtr)->LPtr, K);
+    } else if ((*RootPtr)->Key == K){
+        tBSTNodePtr node = *RootPtr;
+        if (node->RPtr == NULL){
+            *RootPtr = node->LPtr;
+            free(node);
+        } else if (node->LPtr == NULL){
+            *RootPtr = node->RPtr;
+            free(node);
+        } else {
+            ReplaceByRightmost(*RootPtr,&(*RootPtr)->LPtr);
+        }
+    }
 
 }
 
@@ -153,9 +199,19 @@ void BSTDispose (tBSTNodePtr *RootPtr) {
 ** funkce.
 **/
 	
-
-	 solved = FALSE;		  /* V případě řešení smažte tento řádek! */
-
+    if (*RootPtr != NULL){
+        if ((*RootPtr)->RPtr != NULL){  //uzol ma lavy podstrom
+            BSTDispose(&(*RootPtr)->RPtr);
+        }
+        if ((*RootPtr)->LPtr != NULL){  //uzol ma pravy podstrom
+            BSTDispose(&(*RootPtr)->LPtr);
+        }
+        //koniec vetvy, uzol odstranujem z pamati
+        if ((*RootPtr)->RPtr == NULL && (*RootPtr)->LPtr == NULL){
+            free(*RootPtr);
+            *RootPtr = NULL;
+        }
+    }
 }
 
 /* konec c401.c */

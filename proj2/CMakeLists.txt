@@ -1,0 +1,18 @@
+# Author: David Oravec <xorave05@stud.fit.vutbr.cz>
+
+CMAKE_MINIMUM_REQUIRED(VERSION 3.9)
+
+SET(CMAKE_C_COMPILER gcc)
+SET(CMAKE_C_FLAGS "-Wall -std=c99 -pedantic -g")
+
+IF(${PROJECT})
+    PROJECT(${PROJECT})
+ELSE()
+    #   PROJECT(c016)
+    	PROJECT(c401)
+    #	PROJECT(c402)
+ENDIF()
+
+FILE(GLOB SOURCE_FILES "${PROJECT_NAME}/*.c" "${PROJECT_NAME}/*.h")
+
+ADD_EXECUTABLE(${PROJECT_NAME} ${SOURCE_FILES})
