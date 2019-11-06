@@ -8,6 +8,7 @@
 **                                         Úpravy: Bohuslav Křena, listopad 2009
 **                                                 Karel Masařík, říjen 2013
 **                                                 Radek Hranický 2014-2018
+**					   Autor: David Oravec (xorave05)
 **
 ** Implementujte rekurzivním způsobem operace nad binárním vyhledávacím
 ** stromem (BVS; v angličtině BST - Binary Search Tree).
