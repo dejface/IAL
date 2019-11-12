@@ -161,29 +161,26 @@ tData* htRead(tHTable* ptrht, tKey key) {
 */
 
 void htDelete(tHTable* ptrht, tKey key) {
-	int index = hashCode(key);	//ziskanie indexu z tabulky
-	tHTItem* item = (*ptrht)[index];	//pristupujem k polozke na indexe
-	tHTItem* previousItem = NULL;
-	tHTItem* nextItem = NULL;	//pomocne premenne
+    int index = hashCode(key);	//ziskanie indexu z tabulky
+    tHTItem* item = (*ptrht)[index];	//pristupujem k polozke na indexe
+    tHTItem* previousItem = NULL, *nextItem = NULL; //pomocna premenna
 
-	while (item) {		//pokial item nie je NULL
-		nextItem = item->ptrnext;	//ulozim ukazatel na dalsiu polozku
-		if (strcmp(item->key, key) == 0) {	//ak najdem zhodu v key
-			if (previousItem == NULL) {	//a polozka nema pred sebou ziadnu inu
-				//nasledujucu polozku ukladam priamo do tabulky na dany index
-				(*ptrht)[index] = nextItem;
-				return;
-			}
-			else {
-				//predchadzajuca polozka ma ukazatel na nasledujucu
-				previousItem->ptrnext = nextItem;
-			}
-			free(item);
-			return;
-		}
-		previousItem = item;	//ukladam aktualnu polozku ako predchadzajucu
-		item = nextItem;	//aktualna polozka bude dalsou polozkou 
-	}
+    while (item) {		//pokial item nie je NULL
+        nextItem = item->ptrnext;	//ulozim ukazatel na dalsiu polozku
+        if (!strcmp(item->key, key)) {	//ak najdem zhodu v key
+            if (previousItem == NULL) {	//a polozka nema pred sebou ziadnu inu
+                //nasledujucu polozku ukladam priamo do tabulky na dany index
+                (*ptrht)[index] = nextItem;
+            } else {
+                //predchadzajuca polozka ma ukazatel na nasledujucu
+                previousItem->ptrnext = nextItem;
+            }
+            free(item);
+            return;
+        }
+        previousItem = item;	//ukladam aktualnu polozku ako predchadzajucu
+        item = nextItem;	//aktualna polozka bude dalsou polozkou
+    }
 }
 
 /* TRP s explicitně zřetězenými synonymy.
@@ -192,14 +189,14 @@ void htDelete(tHTable* ptrht, tKey key) {
 */
 
 void htClearAll(tHTable* ptrht) {
-	tHTItem* item, * nextItem;
+	tHTItem* item, *nextItem;
 	for (unsigned i = 0; i < HTSIZE; i++) {	//prechadzam vsetky indexy tabulky
 		item = (*ptrht)[i];		//urcim si index v zozname synonym
 
 		while (item) {	//prechadzam zoznamom 
 			nextItem = item->ptrnext;	//ulozim si ukazatel na dalsiu polozku
-			free(item);	//uvolnenie polozky
 
+			free(item);	//uvolnenie polozky
 			item = nextItem;
 		}
 		(*ptrht)[i] = NULL;	//nastavim ukazatel na indexe na NULL
